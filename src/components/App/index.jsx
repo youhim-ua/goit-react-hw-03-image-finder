@@ -5,7 +5,8 @@ import ImageGalleryItem from '../ImageGalleryItem';
 import Modal from '../Modal';
 import Button from '../Button';
 import Spinner from '../Loader';
-import { fetchImages } from '../services/imagesAPI';
+import Error from '../Error';
+import fetchImages from '../services/imagesAPI';
 import pageScroller from '../services/pageScroller';
 import '../../index.css';
 
@@ -19,33 +20,44 @@ class App extends Component {
     id: '',
     showModal: false,
     showSpinner: false,
+    error: false,
   };
 
   handleInputFetch = event => {
     event.preventDefault();
+    this.setErrorFalse();
     const searchWord = event.target.searchWord.value;
     const defaultPage = 1;
     if (searchWord !== '') {
       this.toggleSpinner();
-      fetchImages(searchWord, defaultPage, KEY).then(({ hits }) => {
-        this.setState({ images: [...hits], qwery: searchWord, page: 1 });
-        this.toggleSpinner();
-      });
+      fetchImages(searchWord, defaultPage, KEY)
+        .then(({ hits }) => {
+          this.setState({ images: [...hits], qwery: searchWord, page: 1 });
+        })
+        .catch(() => this.setErrorTrue())
+        .finally(() => this.toggleSpinner());
     }
   };
 
   handleButtonFetch = () => {
     const { qwery, page } = this.state;
     this.toggleSpinner();
-    fetchImages(qwery, page + 1, KEY).then(({ hits }) => {
-      this.setState(({ images, page }) => ({
-        images: [...images, ...hits],
-        page: page + 1,
-      }));
-      pageScroller();
-      this.toggleSpinner();
-    });
+    this.setErrorFalse();
+    fetchImages(qwery, page + 1, KEY)
+      .then(({ hits }) => {
+        this.setState(({ images, page }) => ({
+          images: [...images, ...hits],
+          page: page + 1,
+        }));
+        pageScroller();
+      })
+      .catch(() => this.setErrorTrue())
+      .finally(() => this.toggleSpinner());
   };
+
+  setErrorTrue = () => this.setState({ error: true });
+
+  setErrorFalse = () => this.setState({ error: false });
 
   handleSetID = id => {
     this.setState({ id });
@@ -63,14 +75,18 @@ class App extends Component {
   };
 
   render() {
-    const { showModal, images, showSpinner } = this.state;
+    const { showModal, images, showSpinner, error } = this.state;
 
     return (
       <>
         <Searchbar onSubmit={this.handleInputFetch} />
-        <ImageGallery>
-          <ImageGalleryItem images={images} onSetID={this.handleSetID} />
-        </ImageGallery>
+        {error ? (
+          <Error />
+        ) : (
+          <ImageGallery>
+            <ImageGalleryItem images={images} onSetID={this.handleSetID} />
+          </ImageGallery>
+        )}
         {showSpinner && <Spinner />}
         {images.length !== 0 && !showSpinner && (
           <Button onLoad={this.handleButtonFetch} />

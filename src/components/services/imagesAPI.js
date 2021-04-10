@@ -8,4 +8,4 @@ function fetchImages(qwery, page, key) {
     .then(({ data }) => data);
 }
 
-export { fetchImages };
+export default fetchImages;
