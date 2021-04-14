@@ -1,4 +1,5 @@
 import { Component } from 'react';
+import PropTypes from 'prop-types';
 import Searchbar from '../Searchbar';
 import ImageGallery from '../ImageGallery';
 import ImageGalleryItem from '../ImageGalleryItem';
@@ -9,8 +10,6 @@ import Error from '../Error';
 import fetchImages from '../services/imagesAPI';
 import pageScroller from '../services/pageScroller';
 import '../../index.css';
-
-const KEY = '20337553-a297616fd4599e165a4d47360';
 
 class App extends Component {
   state = {
@@ -27,10 +26,9 @@ class App extends Component {
     event.preventDefault();
     this.setErrorFalse();
     const searchWord = event.target.searchWord.value;
-    const defaultPage = 1;
     if (searchWord !== '') {
       this.toggleSpinner();
-      fetchImages(searchWord, defaultPage, KEY)
+      fetchImages({ qwery: searchWord })
         .then(({ hits }) => {
           this.setState({ images: [...hits], qwery: searchWord, page: 1 });
         })
@@ -43,7 +41,7 @@ class App extends Component {
     const { qwery, page } = this.state;
     this.toggleSpinner();
     this.setErrorFalse();
-    fetchImages(qwery, page + 1, KEY)
+    fetchImages({ qwery: qwery, page: page + 1 })
       .then(({ hits }) => {
         this.setState(({ images, page }) => ({
           images: [...images, ...hits],
@@ -71,11 +69,14 @@ class App extends Component {
   };
 
   toggleSpinner = () => {
-    this.setState(({ showSpinner }) => ({ showSpinner: !showSpinner }));
+    this.setState(({ showSpinner }) => ({
+      showSpinner: !showSpinner,
+    }));
   };
 
   render() {
     const { showModal, images, showSpinner, error } = this.state;
+    const doWeRenderLoadButton = images.length !== 0 && !showSpinner;
 
     return (
       <>
@@ -88,9 +89,7 @@ class App extends Component {
           </ImageGallery>
         )}
         {showSpinner && <Spinner />}
-        {images.length !== 0 && !showSpinner && (
-          <Button onLoad={this.handleButtonFetch} />
-        )}
+        {doWeRenderLoadButton && <Button onLoad={this.handleButtonFetch} />}
         {showModal && (
           <Modal options={this.state} onClose={this.handleToggleModal} />
         )}
@@ -98,5 +97,23 @@ class App extends Component {
     );
   }
 }
+
+Searchbar.propTypes = {
+  onSubmit: PropTypes.func.isRequired,
+};
+
+ImageGalleryItem.propTypes = {
+  images: PropTypes.arrayOf(PropTypes.object).isRequired,
+  onSetID: PropTypes.func.isRequired,
+};
+
+Button.propTypes = {
+  onLoad: PropTypes.func.isRequired,
+};
+
+Modal.propTypes = {
+  options: PropTypes.object.isRequired,
+  onClose: PropTypes.func.isRequired,
+};
 
 export default App;

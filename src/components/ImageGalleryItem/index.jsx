@@ -1,5 +1,6 @@
 import { Component } from 'react';
 import styles from './ImageGalleryItem.module.css';
+import PropTypes from 'prop-types';
 
 class ImageGalleryItem extends Component {
   render() {
@@ -20,5 +21,10 @@ class ImageGalleryItem extends Component {
     ));
   }
 }
+
+ImageGalleryItem.propTypes = {
+  onSetID: PropTypes.func.isRequired,
+  images: PropTypes.arrayOf(PropTypes.object).isRequired,
+};
 
 export default ImageGalleryItem;

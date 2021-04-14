@@ -1,5 +1,6 @@
 import { Component } from 'react';
 import styles from './Modal.module.css';
+import PropTypes from 'prop-types';
 
 class Modal extends Component {
   componentDidMount() {
@@ -42,5 +43,13 @@ class Modal extends Component {
     );
   }
 }
+
+Modal.propTypes = {
+  onClose: PropTypes.func.isRequired,
+  options: PropTypes.shape({
+    images: PropTypes.arrayOf(PropTypes.object).isRequired,
+    id: PropTypes.string.isRequired,
+  }),
+};
 
 export default Modal;
